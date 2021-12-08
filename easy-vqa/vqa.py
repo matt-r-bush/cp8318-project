@@ -1,6 +1,8 @@
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, Flatten, Multiply
 
+import data_prep
+
 def init_model(img_shape, vocab_size, num_answers):
 
     ## convolutional NN for images
@@ -47,4 +49,4 @@ def init_model(img_shape, vocab_size, num_answers):
 
     return model
 
-
+x_train, x_test, y_train, y_test = get_data()

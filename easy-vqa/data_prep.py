@@ -122,5 +122,5 @@ test_questions = all_questions[ratio:]
 train_answers = all_ans[:ratio]
 test_answers = all_ans[ratio:]
 
-def get_xy():
+def get_data():
     return (x_train, x_test, y_train, y_test, train_questions, test_questions, train_answers, test_answers, num_words, image_shape)
