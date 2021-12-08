@@ -17,15 +17,6 @@ def init_model(img_shape, vocab_size, num_answers):
     img_info = Conv2D(64, 5, activation ='relu')(img_info)
     img_info = MaxPooling2D(5)(img_info)
     
-    img_info = Conv2D(128, 5, activation ='relu')(img_info)
-    img_info = MaxPooling2D(5)(img_info)
-    
-    img_info = Conv2D(64, 5, activation ='relu')(img_info)
-    img_info = MaxPooling2D(5)(img_info)
-    
-    img_info = Conv2D(32, 5, activation ='relu')(img_info)
-    img_info = MaxPooling2D(5)(img_info)
-    
     ## could add a dropout layer here
 
     img_info = Flatten()(img_info)
@@ -41,7 +32,7 @@ def init_model(img_shape, vocab_size, num_answers):
 
     ## merge img_info and q_info
 
-    output = Multiply([img_info, q_info])
+    output = Multiply()([img_info, q_info])
     output = Dense(32, activation='relu')(output)
     output = Dense(num_answers, activation='softmax')(output)
 
@@ -53,7 +44,11 @@ def init_model(img_shape, vocab_size, num_answers):
     return model
 
 
-model = init_model(img_shape, vocab_size, num_answers)
+train_imgs, test_imgs, train_answers, test_answers, train_qs, test_qs, possible_answers, num_words, img_shape = get_data()
+
+num_answers = len(possible_answers)
+
+model = init_model(img_shape, num_words, num_answers)
 
 
 ## train model and record history
