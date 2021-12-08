@@ -1,7 +1,10 @@
+## for model building
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, Flatten, Multiply
 
-import data_prep
+## imports from our files
+from data_prep import get_data
+from metrics import get_precision, get_recall, get_f1, get_accuracy
 
 def init_model(img_shape, vocab_size, num_answers):
 
@@ -49,4 +52,26 @@ def init_model(img_shape, vocab_size, num_answers):
 
     return model
 
-x_train, x_test, y_train, y_test = get_data()
+
+model = init_model(img_shape, vocab_size, num_answers)
+
+
+## train model and record history
+
+history = model.fit(x=[train_imgs, train_qs],
+    y=train_answers,
+    epochs=10,
+    verbose=1,
+    batch_size=16,
+)
+
+model.save()
+
+
+## could do k-fold cross validation
+
+
+## evaluate model
+
+predictions = model.predict([test_imgs, test_qs])
+

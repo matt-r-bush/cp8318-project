@@ -118,4 +118,4 @@ def get_data():
     y_train = y[:ratio]
     y_test = y[ratio:]
 
-    return x_train, x_test, y_train, y_test
+    return x_train, x_test, y_train, y_test, questions_bow
