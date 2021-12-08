@@ -13,7 +13,7 @@ QUESTIONS_PATH = './data/questions.JSON'
 ANSWERS_PATH = './data/answers.txt'
 IMAGES_PATH = './data/images/'
 
-def data_prep():
+def get_data():
     # open questions
     with open(QUESTIONS_PATH, 'r') as file:
         qs = json.load(file)
@@ -118,4 +118,4 @@ def data_prep():
     y_train = y[:ratio]
     y_test = y[ratio:]
 
-    return (x_train, x_test, y_train, y_test)
+    return x_train, x_test, y_train, y_test
