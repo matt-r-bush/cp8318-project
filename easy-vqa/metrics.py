@@ -2,19 +2,19 @@ import numpy as np
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 
 def get_precision(predicted_labels: np.array, actual_labels: np.array):
-    precision = precision_score(actual_labels, predicted_labels)
+    precision = precision_score(actual_labels, predicted_labels, average='micro')
     print("Precision is: ", precision)
     return precision
 
 
 def get_recall(predicted_labels: np.array, actual_labels: np.array):
-    recall = recall_score(actual_labels, predicted_labels)
+    recall = recall_score(actual_labels, predicted_labels, average='micro')
     print("Recall is: ", recall)
     return recall
 
 
 def get_f1(predicted_labels: np.array, actual_labels: np.array):
-    f1 = f1_score(actual_labels, predicted_labels)
+    f1 = f1_score(actual_labels, predicted_labels, average='micro')
     print("F1 is: ", f1)
     return f1
 
