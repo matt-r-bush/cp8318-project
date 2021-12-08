@@ -118,9 +118,6 @@ y_test = y[ratio:]
 # split questions
 train_questions = all_questions[:ratio]
 test_questions = all_questions[ratio:]
-# split answers
-train_answers = all_ans[:ratio]
-test_answers = all_ans[ratio:]
 
 def get_data():
-    return (x_train, x_test, y_train, y_test, train_questions, test_questions, train_answers, test_answers, num_words, image_shape)
+    return (x_train, x_test, y_train, y_test, train_questions, test_questions, all_ans, num_words, image_shape)
