@@ -2,6 +2,7 @@ from numpy.lib.type_check import _imag_dispatcher
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from tensorflow.keras.utils import to_categorical
+from random import seed, shuffle
 import json
 import os
 import numpy as np
@@ -99,6 +100,16 @@ x = np.array([images[id] for id in ids])
 # create model outputs
 answers_idx = [all_ans.index(a) for a in ans]
 y = to_categorical(answers_idx)
+
+# zip and shuffle
+
+xy = list(zip(x, y)) ## zip to keep data and labels aligned during shuffle
+
+seed(13) ## seed for reproducibility
+
+shuffle(xy)
+
+x, y = zip(*xy) ## unzip shuffled data
 
 # set ratio for train
 ratio = 0.8
