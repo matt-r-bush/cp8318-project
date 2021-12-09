@@ -110,17 +110,21 @@ def create_question_vocab(data):
 
     return vocab, inverse_vocab, max_len
 
-def create_answer_vocab(data):
-    dict = {}
+def create_answer_vocab(data): ## two word answers might not matter?
+    answers = []
     for example in data:
-        ans = example['ans']
-    
-    vocab = []
-    cw = sorted([(count,w) for w,count in count.items()], reverse=True)
-    for i in range(params['num_ans']):
-        vocab.append(cw[i][1])
+        answer = example['ans']
+        answers.append(answer)
+    vocab = {}
+    index = 0
+    for answer in answers:
+        if answer not in vocab:
+            vocab[answer] = index
+            index += 1
 
-    return vocab[]
+    inverse_vocab = {index: token for token, index in vocab.items()}
+
+    return vocab, inverse_vocab
 
     ## if we want to have a count threshold
     # count_thr = 50
@@ -225,12 +229,12 @@ def main():
 
     q_vocab, q_inverse_vocab, max_len = create_question_vocab(raw_train)
 
-    a_vocab, a_inverse_vocab = create_question_vocab(raw_train)
+    a_vocab, a_inverse_vocab = create_answer_vocab(raw_train)
 
     ## get numpy arrays of trainable data
     int_qs_train, train_qid = prepare_questions(raw_train, q_vocab, max_len)
     int_qs_test, test_qid = prepare_questions(raw_test, q_vocab, max_len)
-
+    
     ## change this up
     unique_img_train, img_pos_train = get_unique_img(raw_train)
     unique_img_test, img_pos_test = get_unique_img(raw_test)
