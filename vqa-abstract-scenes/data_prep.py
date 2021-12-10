@@ -10,7 +10,7 @@ from pathlib import Path
 import math
 
 # max answers is 2521
-TRAIN_AMOUNT = 2000
+TRAIN_AMOUNT = 500
 TEST_AMOUNT = 500
 
 
@@ -63,12 +63,6 @@ def get_qaiap(data, type):
         image_paths_arr.append(q['img_path'])
         ans.append(q['ans'])
         ids.append(img_id)#q['ques_id'])
-        if len(questions) >= max_imgs:
-            break
-    # print('ans', ans)
-    # print('questions len ', len(questions))
-    # print('image paths ', image_paths)
-    # print('all ans ', all_ans)
     return questions, ans, ids, all_ans, image_paths, image_paths_arr
 
 def getImages(image_paths):
@@ -133,11 +127,14 @@ def get_questions(questions):
         count += 1
     return questions_bow, num_words
 
+
+
+
 raw_train = json.load(open('abstract_train.json', 'r'))
 raw_test = json.load(open('abstract_test.json', 'r'))
 
 # train
-train_questions, train_ans, train_ids, possible_train_ans, train_img_paths, img_paths_arr = get_qaiap(raw_train, 'train')
+train_questions, train_ans, train_ids, possible_train_ans, train_img_paths, image_paths_arr = get_qaiap(raw_train, 'train')
 # print('num ', len(train_questions))
 # test
 # test_questions, test_ans, test_ids, possible_test_ans, test_img_paths = get_qaiap(raw_test, 'test')
@@ -147,7 +144,11 @@ num_ans = len(all_ans)
 
 # process images
 # train
-train_images, image_shape = getImages(train_img_paths)
+
+
+# train_images, image_shape = getImages(train_img_paths)
+
+
 # print('train imgs ', train_images)
 # print('image shape ', image_shape)
 # test, don't need image shape anymore, redundant
@@ -162,7 +163,7 @@ train_questions_bow, num_words = get_questions(train_questions)
 # test_questions_bow = get_questions(test_questions)
 
 # create model inputs
-x = np.array([train_images[id] for id in train_ids])
+x = image_paths_arr ##np.array([train_images[id] for id in train_ids])
 
 # create model outputs
 answers_idx = [all_ans.index(a) for a in train_ans]
@@ -181,8 +182,16 @@ y_test = y[ratio:]
 train_questions = train_questions_bow[:ratio]
 test_questions = train_questions_bow[ratio:]
 
-print('x train ', x_train.shape)
-print('train qs ', train_questions.shape)
-# print('image paths arr ', img_paths_arr)
+# np.save('numpy-arrays/train_imgs.npy', x_train)
+# np.save('numpy-arrays/test_imgs.npy', x_test)
+# np.save('numpy-arrays/train_answers.npy', y_train)
+# np.save('numpy-arrays/test_answers.npy', y_test)
+# np.save('numpy-arrays/train_qs.npy', train_questions)
+# np.save('numpy-arrays/test_qs.npy', test_questions)
+# np.save('numpy-arrays/possible_answers.npy', all_ans)
+
+# print('x train ', x_train.shape())
+# print('train qs ', train_questions.shape())
 def get_data():
-    return (x_train, x_test, y_train, y_test, train_questions, test_questions, all_ans, num_words, image_shape, img_paths_arr)
+    return (x_train, x_test, y_train, y_test, train_questions, test_questions, all_ans, num_words)
+

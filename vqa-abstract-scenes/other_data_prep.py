@@ -10,25 +10,43 @@ from pathlib import Path
 import math
 
 # max answers is 2521
-TRAIN_AMOUNT = 2000
+TRAIN_AMOUNT = 60000
 TEST_AMOUNT = 500
 
 
-def get_qaiap(data, type):
+def get_qaiapa(data, type, check_top_ans, removeYesNo):
     # # open questions
     # go through the questions file and get the questions, answers, and ids
 
-    # # top answers
-    # top_ans = {}
-    # for q in data:
-    #     # print('q ', q)
-    #     answer = q['ans']
-    #     if answer in top_ans:
-    #         top_ans[answer] += 1
-    #     else:
-    #         top_ans[answer] = 1
-    # print('top ans', top_ans)
-    # return
+    if check_top_ans > 0:
+        # top answers
+        p_ans = {}
+        for q in data:
+            # print('q ', q)
+            answer = q['ans']
+            if answer in p_ans:
+                p_ans[answer] += 1
+            else:
+                p_ans[answer] = 1
+        # print('P ans', p_ans)
+        top_ans = {}
+        for k, v in p_ans.items():
+            top_ans[v] = top_ans.get(v, []) + [k]
+        top_ans = dict(sorted(top_ans.items(),reverse=True))
+        print('-----------')
+        # print(' TOP ANSSS ', top_ans)
+        top = []
+        for a in top_ans:
+            # print('a ', a)
+            if removeYesNo == True:
+                if 'yes' in top_ans[a] or 'no' in top_ans[a]:
+                    continue
+            # print('a ', top_ans[a])
+            top += top_ans[a]
+            if len(top) >= check_top_ans:
+                break
+        print('top ', top)
+        print('top size ', len(top))
 
     questions = []
     ans = []
@@ -52,9 +70,13 @@ def get_qaiap(data, type):
             img_id = int(str(q['ques_id'])[:-1])
         # if img_id > max_imgs:
         #     continue
-        # only use yes/no answers
-        if not q['ans'] == 'yes' and not q['ans'] == 'no':
-            continue
+        # # only use yes/no answers
+        # if not q['ans'] == 'yes' and not q['ans'] == 'no':
+        #     continue
+        # only use top answers
+        if check_top_ans > 0:
+            if not q['ans'] in top:
+                continue
         # add answer to all_ans if it doesn't exist yet
         if not (q['ans'] in all_ans):
             all_ans.append(q['ans'])
@@ -66,7 +88,7 @@ def get_qaiap(data, type):
         if len(questions) >= max_imgs:
             break
     # print('ans', ans)
-    # print('questions len ', len(questions))
+    print('questions len ', len(questions))
     # print('image paths ', image_paths)
     # print('all ans ', all_ans)
     return questions, ans, ids, all_ans, image_paths, image_paths_arr
@@ -137,7 +159,7 @@ raw_train = json.load(open('abstract_train.json', 'r'))
 raw_test = json.load(open('abstract_test.json', 'r'))
 
 # train
-train_questions, train_ans, train_ids, possible_train_ans, train_img_paths, img_paths_arr = get_qaiap(raw_train, 'train')
+train_questions, train_ans, train_ids, possible_train_ans, train_img_paths, image_paths_arr = get_qaiapa(raw_train, 'train', 2, False)
 # print('num ', len(train_questions))
 # test
 # test_questions, test_ans, test_ids, possible_test_ans, test_img_paths = get_qaiap(raw_test, 'test')
@@ -162,7 +184,7 @@ train_questions_bow, num_words = get_questions(train_questions)
 # test_questions_bow = get_questions(test_questions)
 
 # create model inputs
-x = np.array([train_images[id] for id in train_ids])
+x = image_paths_arr#np.array([train_images[id] for id in train_ids])
 
 # create model outputs
 answers_idx = [all_ans.index(a) for a in train_ans]
@@ -181,8 +203,8 @@ y_test = y[ratio:]
 train_questions = train_questions_bow[:ratio]
 test_questions = train_questions_bow[ratio:]
 
-print('x train ', x_train.shape)
-print('train qs ', train_questions.shape)
+# print('x train ', x_train.shape)
+# print('train qs ', train_questions.shape)
 # print('image paths arr ', img_paths_arr)
 def get_data():
-    return (x_train, x_test, y_train, y_test, train_questions, test_questions, all_ans, num_words, image_shape, img_paths_arr)
+    return (x_train, x_test, y_train, y_test, train_questions, test_questions, all_ans, num_words)
