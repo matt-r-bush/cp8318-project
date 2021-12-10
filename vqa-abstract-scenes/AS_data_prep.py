@@ -214,8 +214,6 @@ def encode_mc_answer(imgs, atoi): ## change this up
     return mc_ans_arrays
 
 
-
-
 def main():
     raw_train = json.load(open('abstract_train.json', 'r'))
     raw_test = json.load(open('abstract_test.json', 'r'))
@@ -231,10 +229,10 @@ def main():
 
     a_vocab, a_inverse_vocab = create_answer_vocab(raw_train)
 
-    ## get numpy arrays of trainable data
+    ## get numpy arrays of question data
     int_qs_train, train_qid = prepare_questions(raw_train, q_vocab, max_len)
     int_qs_test, test_qid = prepare_questions(raw_test, q_vocab, max_len)
-    
+
     ## change this up
     unique_img_train, img_pos_train = get_unique_img(raw_train)
     unique_img_test, img_pos_test = get_unique_img(raw_test)
