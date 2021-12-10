@@ -1,12 +1,13 @@
 ## for model building
 from tensorflow.keras.models import Model
+from tensorflow.keras.models import load_model
 from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, Flatten, Multiply
 from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras.backend import argmax
 
 ## imports from our files
 from data_prep import get_data
-# from sklearn.metrics import get_precision, get_recall, get_f1, get_accuracy
+# from metrics import get_precision, get_recall, get_f1, get_accuracy
 
 ## helpers
 import numpy as np
@@ -52,25 +53,26 @@ def init_model(img_shape, vocab_size, num_answers):
 
     return model
 
-train_imgs, test_imgs, train_answers, test_answers, train_qs, test_qs, possible_answers, num_words, img_shape = get_data()
+train_imgs, test_imgs, train_answers, test_answers, train_qs, test_qs, possible_answers, num_words, img_shape, img_paths_arr = get_data()
 
 num_answers = len(possible_answers)
 
 ## initialize models for parameters
 
-model = init_model(img_shape, num_words, num_answers)
-
+# model = init_model(img_shape, num_words, num_answers)
+model = load_model('second_model')
 
 ## train model and record history
 
 history = model.fit(x=[train_imgs, train_qs],
     y=train_answers,
-    epochs=10,
+    # validation_data=(test_imgs,test_answers),
+    epochs=1,
     verbose=1,
     batch_size=8,
 )
 
-model.save('first_model')
+model.save('second_model')
 
 
 ## could do k-fold cross validation

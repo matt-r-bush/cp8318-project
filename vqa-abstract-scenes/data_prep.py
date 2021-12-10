@@ -11,17 +11,32 @@ import math
 
 # max answers is 2521
 TRAIN_AMOUNT = 2000
-TEST_AMOUNT = 5000
+TEST_AMOUNT = 500
 
 
 def get_qaiap(data, type):
     # # open questions
     # go through the questions file and get the questions, answers, and ids
+
+    # # top answers
+    # top_ans = {}
+    # for q in data:
+    #     # print('q ', q)
+    #     answer = q['ans']
+    #     if answer in top_ans:
+    #         top_ans[answer] += 1
+    #     else:
+    #         top_ans[answer] = 1
+    # print('top ans', top_ans)
+    # return
+
     questions = []
     ans = []
     ids = []
     all_ans = []
     image_paths = {}
+    image_paths_arr = []
+
     if type == 'train':
         max_imgs = TRAIN_AMOUNT
     else:
@@ -29,23 +44,32 @@ def get_qaiap(data, type):
 
     for q in data:
         # map image id to image path
-        # get img id, img id is id of question minus when last element is removed
+        # get img id, img id is id of question minus last element
         # special case
-        # add answer to all_ans if it doesn't exist yet
         if(q['ques_id'] == 0 or q['ques_id'] == 1 or q['ques_id'] == 2):
             img_id = 0
         else:
             img_id = int(str(q['ques_id'])[:-1])
-        if img_id > max_imgs:
+        # if img_id > max_imgs:
+        #     continue
+        # only use yes/no answers
+        if not q['ans'] == 'yes' and not q['ans'] == 'no':
             continue
+        # add answer to all_ans if it doesn't exist yet
         if not (q['ans'] in all_ans):
             all_ans.append(q['ans'])
         image_paths[img_id] = q['img_path']
         questions.append(q['question'])
+        image_paths_arr.append(q['img_path'])
         ans.append(q['ans'])
         ids.append(img_id)#q['ques_id'])
-
-    return questions, ans, ids, all_ans, image_paths
+        if len(questions) >= max_imgs:
+            break
+    # print('ans', ans)
+    # print('questions len ', len(questions))
+    # print('image paths ', image_paths)
+    # print('all ans ', all_ans)
+    return questions, ans, ids, all_ans, image_paths, image_paths_arr
 
 def getImages(image_paths):
     # map image ids to processed images
@@ -63,7 +87,9 @@ def getImages(image_paths):
         images[i] = shift_img
     # get images shape 
     # print('images 0 ', images[0])
-    image_shape = images[0].shape
+    # print('images ', images)
+    image_shape = images[5536].shape
+    # print('iamge shapre ', image_shape)
 
     return images, image_shape
 
@@ -111,7 +137,7 @@ raw_train = json.load(open('abstract_train.json', 'r'))
 raw_test = json.load(open('abstract_test.json', 'r'))
 
 # train
-train_questions, train_ans, train_ids, possible_train_ans, train_img_paths = get_qaiap(raw_train, 'train')
+train_questions, train_ans, train_ids, possible_train_ans, train_img_paths, img_paths_arr = get_qaiap(raw_train, 'train')
 # print('num ', len(train_questions))
 # test
 # test_questions, test_ans, test_ids, possible_test_ans, test_img_paths = get_qaiap(raw_test, 'test')
@@ -155,7 +181,8 @@ y_test = y[ratio:]
 train_questions = train_questions_bow[:ratio]
 test_questions = train_questions_bow[ratio:]
 
-# print('x train ', x_train.shape())
-# print('train qs ', train_questions.shape())
+print('x train ', x_train.shape)
+print('train qs ', train_questions.shape)
+# print('image paths arr ', img_paths_arr)
 def get_data():
-    return (x_train, x_test, y_train, y_test, train_questions, test_questions, all_ans, num_words, image_shape)
+    return (x_train, x_test, y_train, y_test, train_questions, test_questions, all_ans, num_words, image_shape, img_paths_arr)
