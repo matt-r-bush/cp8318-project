@@ -212,11 +212,9 @@ def encode_mc_answer(imgs, atoi): ## change this up
     return mc_ans_arrays
 
 
-
-
-# def main():
-raw_train = json.load(open('abstract_train.json', 'r'))
-raw_test = json.load(open('abstract_test.json', 'r'))
+def main():
+    raw_train = json.load(open('abstract_train.json', 'r'))
+    raw_test = json.load(open('abstract_test.json', 'r'))
 
 seed(5318008)
 shuffle(raw_train)
