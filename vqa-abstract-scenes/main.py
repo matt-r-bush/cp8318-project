@@ -1,3 +1,5 @@
+from tensorflow import keras
+
 ## for model building
 from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, Flatten, Multiply
@@ -12,7 +14,7 @@ from data_prep import get_data
 ## for dealing with images
 from skimage.io import imread
 from skimage.transform import resize
-from tensorflowf.keras.preprocessing.image import ImageDataGenerator
+# from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 
 # from sklearn.metrics import get_precision, get_recall, get_f1, get_accuracy
@@ -25,10 +27,33 @@ import numpy as np
 import json
 import metrics
 
+IMG_SHAPE = (200, 350, 3)
+BATCH_SIZE = 128
+
 # construct the training image generator for data augmentation
-aug = ImageDataGenerator(rotation_range=20, zoom_range=0.15,
-	width_shift_range=0.2, height_shift_range=0.2, shear_range=0.15,
-	horizontal_flip=True, fill_mode="nearest")
+class My_Custom_Generator(keras.utils.Sequence) :
+  
+  def __init__(self, image_filenames, questions, labels, batch_size) :
+    self.image_filenames = image_filenames
+    self.questions = questions
+    self.labels = labels
+    self.batch_size = batch_size
+    
+    
+  def __len__(self) :
+    return (np.ceil(len(self.image_filenames) / float(self.batch_size))).astype(np.int)
+  
+  
+  def __getitem__(self, idx) :
+    batch_imgs = self.image_filenames[idx * self.batch_size : (idx+1) * self.batch_size]
+
+    batch_qs = self.questions[idx * self.batch_size : (idx+1) * self.batch_size]
+
+    batch_labels = self.labels[idx * self.batch_size : (idx+1) * self.batch_size]
+    
+    return [np.array([
+            resize(imread(file_name), IMG_SHAPE) ## image resize is hardcoded
+               for file_name in batch_imgs])/255.0, batch_qs], np.array(batch_labels)
 
 
 
@@ -72,22 +97,24 @@ def init_model(img_shape, vocab_size, num_answers):
 
     return model
 
-train_imgs, test_imgs, train_answers, test_answers, train_qs, test_qs, possible_answers, num_words, img_shape = get_data()
+train_imgs, test_imgs, train_answers, test_answers, train_qs, test_qs, possible_answers, num_words = get_data()
 
 num_answers = len(possible_answers)
 
+my_training_batch_generator = My_Custom_Generator(train_imgs, train_qs, train_answers, batch_size=BATCH_SIZE)
+# my_validation_batch_generator = My_Custom_Generator(X_val_filenames, y_val, batch_size=32)
+
 # initialize models for parameters
 
-model = init_model(img_shape, num_words, num_answers)
+model = init_model(IMG_SHAPE, num_words, num_answers)
 
 
 ## train model and record history
 with device('/cpu:0'):
-    history = model.fit_generator(x=[train_imgs, train_qs],
-        y=train_answers,
+    history = model.fit_generator(generator = my_training_batch_generator,
+        steps_per_epoch = np.ceil(train_answers.shape[0] / BATCH_SIZE), ##32 = batch size
         epochs=10,
-        verbose=1,
-        batch_size=32,
+        verbose=1
     )
 
 model.save('first_model')
