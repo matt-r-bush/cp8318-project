@@ -9,7 +9,7 @@ from tensorflow.python.keras.backend import argmax
 from tensorflow import device
 
 ## imports from our files
-from data_prep import get_data
+from other_data_prep import get_data
 
 ## for dealing with images
 from skimage.io import imread

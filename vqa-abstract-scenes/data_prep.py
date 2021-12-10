@@ -10,20 +10,32 @@ from pathlib import Path
 import math
 
 # max answers is 2521
-TRAIN_AMOUNT = 60000
+TRAIN_AMOUNT = 500
 TEST_AMOUNT = 500
 
 
 def get_qaiap(data, type):
     # # open questions
     # go through the questions file and get the questions, answers, and ids
+
+    # # top answers
+    # top_ans = {}
+    # for q in data:
+    #     # print('q ', q)
+    #     answer = q['ans']
+    #     if answer in top_ans:
+    #         top_ans[answer] += 1
+    #     else:
+    #         top_ans[answer] = 1
+    # print('top ans', top_ans)
+    # return
+
     questions = []
     ans = []
     ids = []
     all_ans = []
     image_paths = {}
     image_paths_arr = []
-
 
     if type == 'train':
         max_imgs = TRAIN_AMOUNT
@@ -32,15 +44,18 @@ def get_qaiap(data, type):
 
     for q in data:
         # map image id to image path
-        # get img id, img id is id of question minus when last element is removed
+        # get img id, img id is id of question minus last element
         # special case
-        # add answer to all_ans if it doesn't exist yet
         if(q['ques_id'] == 0 or q['ques_id'] == 1 or q['ques_id'] == 2):
             img_id = 0
         else:
             img_id = int(str(q['ques_id'])[:-1])
-        if img_id > max_imgs:
+        # if img_id > max_imgs:
+        #     continue
+        # only use yes/no answers
+        if not q['ans'] == 'yes' and not q['ans'] == 'no':
             continue
+        # add answer to all_ans if it doesn't exist yet
         if not (q['ans'] in all_ans):
             all_ans.append(q['ans'])
         image_paths[img_id] = q['img_path']
@@ -48,7 +63,6 @@ def get_qaiap(data, type):
         image_paths_arr.append(q['img_path'])
         ans.append(q['ans'])
         ids.append(img_id)#q['ques_id'])
-
     return questions, ans, ids, all_ans, image_paths, image_paths_arr
 
 def getImages(image_paths):
@@ -67,7 +81,9 @@ def getImages(image_paths):
         images[i] = shift_img
     # get images shape 
     # print('images 0 ', images[0])
-    image_shape = images[0].shape
+    # print('images ', images)
+    image_shape = images[5536].shape
+    # print('iamge shapre ', image_shape)
 
     return images, image_shape
 
