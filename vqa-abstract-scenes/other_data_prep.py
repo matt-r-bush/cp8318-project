@@ -10,7 +10,7 @@ from pathlib import Path
 import math
 
 # max answers is 2521
-TRAIN_AMOUNT = 60000
+TRAIN_AMOUNT = 30000
 TEST_AMOUNT = 500
 
 
@@ -169,7 +169,7 @@ num_ans = len(all_ans)
 
 # process images
 # train
-train_images, image_shape = getImages(train_img_paths)
+# train_images, image_shape = getImages(train_img_paths)
 # print('train imgs ', train_images)
 # print('image shape ', image_shape)
 # test, don't need image shape anymore, redundant
