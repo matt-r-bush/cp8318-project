@@ -24,11 +24,13 @@ from keras.utils.vis_utils import plot_model
 
 ## helpers
 import numpy as np
+import pickle
 import json
 import metrics
 
 IMG_SHAPE = (200, 350, 3)
 BATCH_SIZE = 128
+MODEL_NAME = 'third_model'
 
 # construct the training image generator for data augmentation
 class My_Custom_Generator(keras.utils.Sequence) :
@@ -70,6 +72,9 @@ def init_model(img_shape, vocab_size, num_answers):
 
     img_info = Conv2D(32, 3, padding='same')(img_info)
     img_info = MaxPooling2D(padding='same')(img_info)
+
+    img_info = Conv2D(64, 3, padding='same')(img_info)
+    img_info = MaxPooling2D(padding='same')(img_info)
     
     ## could add a dropout layer here
 
@@ -102,46 +107,45 @@ train_imgs, test_imgs, train_answers, test_answers, train_qs, test_qs, possible_
 num_answers = len(possible_answers)
 
 my_training_batch_generator = My_Custom_Generator(train_imgs, train_qs, train_answers, batch_size=BATCH_SIZE)
-# my_validation_batch_generator = My_Custom_Generator(X_val_filenames, y_val, batch_size=32)
+my_validation_batch_generator = My_Custom_Generator(test_imgs, test_qs, test_answers, batch_size=BATCH_SIZE)
 
 # initialize models for parameters
 
 model = init_model(IMG_SHAPE, num_words, num_answers)
 
+# model = load_model(MODEL_NAME)
 
 ## train model and record history
-with device('/cpu:0'):
-    history = model.fit_generator(generator = my_training_batch_generator,
-        steps_per_epoch = np.ceil(train_answers.shape[0] / BATCH_SIZE), ##32 = batch size
-        epochs=10,
-        verbose=1
-    )
+# with device('/cpu:0'):
+history = model.fit(x = my_training_batch_generator,
+    steps_per_epoch = np.ceil(train_answers.shape[0] / BATCH_SIZE),
+    epochs=1,
+    verbose=1,
+    validation_data = my_validation_batch_generator,
+    validation_steps = np.ceil(test_answers.shape[0] / BATCH_SIZE)
+)
 
-model.save('first_model')
+with open('{}_hist'.format(MODEL_NAME), 'wb') as file_pi:
+        pickle.dump(history.history, file_pi)
 
-train_imgs = np.load('numpy-arrays/train_imgs.npy')
-test_imgs = np.load('numpy-arrays/test_imgs.npy')
-train_answers = np.load('numpy-arrays/train_answers.npy')
-test_answers = np.load('numpy-arrays/test_answers.npy')
-train_qs = np.load('numpy-arrays/train_qs.npy')
-test_qs = np.load('numpy-arrays/test_qs.npy')
-possible_answers = np.load('numpy-arrays/possible_answers.npy')
+model.save(MODEL_NAME)
 
-model = load_model('first_model')
+# model = load_model('second_model_generator')
 
-with device('/cpu:0'):
-    predictions = model.predict(x=[test_imgs, test_qs])
+# with device('/cpu:0'):
+# predictions = model.predict(x=my_validation_batch_generator,
+#     steps = np.ceil(test_answers.shape[0] / BATCH_SIZE))
 
-print(np.shape(predictions))
-print(np.shape(test_answers))
+# print(np.shape(predictions))
+# print(np.shape(test_answers))
 
-predictions = np.argmax(predictions, axis=1)
-test_answers = np.argmax(test_answers, axis=1)
+# predictions = np.argmax(predictions, axis=1)
+# test_answers = np.argmax(test_answers, axis=1)
 
-metrics.get_precision(predictions, test_answers) ## using weighted average
-metrics.get_recall(predictions, test_answers) ## using weighted average
-metrics.get_f1(predictions, test_answers) ## using weighted average
-metrics.get_accuracy(predictions, test_answers) ## using weighted average
+# metrics.get_precision(predictions, test_answers) ## using weighted average
+# metrics.get_recall(predictions, test_answers) ## using weighted average
+# metrics.get_f1(predictions, test_answers) ## using weighted average
+# metrics.get_accuracy(predictions, test_answers) ## using weighted average
 
 
 ## could do k-fold cross validation
