@@ -10,8 +10,8 @@ from pathlib import Path
 import math
 
 # max answers is 2521
-TRAIN_AMOUNT = 2000
-TEST_AMOUNT = 5000
+TRAIN_AMOUNT = 2500
+TEST_AMOUNT = 500
 
 
 def get_qaiap(data, type):
@@ -107,6 +107,9 @@ def get_questions(questions):
         count += 1
     return questions_bow, num_words
 
+
+
+
 raw_train = json.load(open('abstract_train.json', 'r'))
 raw_test = json.load(open('abstract_test.json', 'r'))
 
@@ -155,7 +158,16 @@ y_test = y[ratio:]
 train_questions = train_questions_bow[:ratio]
 test_questions = train_questions_bow[ratio:]
 
+# np.save('numpy-arrays/train_imgs.npy', x_train)
+# np.save('numpy-arrays/test_imgs.npy', x_test)
+# np.save('numpy-arrays/train_answers.npy', y_train)
+# np.save('numpy-arrays/test_answers.npy', y_test)
+# np.save('numpy-arrays/train_qs.npy', train_questions)
+# np.save('numpy-arrays/test_qs.npy', test_questions)
+# np.save('numpy-arrays/possible_answers.npy', all_ans)
+
 # print('x train ', x_train.shape())
 # print('train qs ', train_questions.shape())
 def get_data():
     return (x_train, x_test, y_train, y_test, train_questions, test_questions, all_ans, num_words, image_shape)
+

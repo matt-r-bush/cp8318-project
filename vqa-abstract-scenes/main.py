@@ -1,16 +1,36 @@
 ## for model building
-from tensorflow.keras.models import Model
+from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, Flatten, Multiply
 from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras.backend import argmax
+## allows me to choose devices for training
+from tensorflow import device
 
 ## imports from our files
 from data_prep import get_data
+
+## for dealing with images
+from skimage.io import imread
+from skimage.transform import resize
+from tensorflowf.keras.preprocessing.image import ImageDataGenerator
+
+
 # from sklearn.metrics import get_precision, get_recall, get_f1, get_accuracy
+
+## for visualization
+from keras.utils.vis_utils import plot_model
 
 ## helpers
 import numpy as np
 import json
+import metrics
+
+# construct the training image generator for data augmentation
+aug = ImageDataGenerator(rotation_range=20, zoom_range=0.15,
+	width_shift_range=0.2, height_shift_range=0.2, shear_range=0.15,
+	horizontal_flip=True, fill_mode="nearest")
+
+
 
 def init_model(img_shape, vocab_size, num_answers):
 
@@ -56,21 +76,45 @@ train_imgs, test_imgs, train_answers, test_answers, train_qs, test_qs, possible_
 
 num_answers = len(possible_answers)
 
-## initialize models for parameters
+# initialize models for parameters
 
 model = init_model(img_shape, num_words, num_answers)
 
 
 ## train model and record history
-
-history = model.fit(x=[train_imgs, train_qs],
-    y=train_answers,
-    epochs=10,
-    verbose=1,
-    batch_size=8,
-)
+with device('/cpu:0'):
+    history = model.fit_generator(x=[train_imgs, train_qs],
+        y=train_answers,
+        epochs=10,
+        verbose=1,
+        batch_size=32,
+    )
 
 model.save('first_model')
+
+train_imgs = np.load('numpy-arrays/train_imgs.npy')
+test_imgs = np.load('numpy-arrays/test_imgs.npy')
+train_answers = np.load('numpy-arrays/train_answers.npy')
+test_answers = np.load('numpy-arrays/test_answers.npy')
+train_qs = np.load('numpy-arrays/train_qs.npy')
+test_qs = np.load('numpy-arrays/test_qs.npy')
+possible_answers = np.load('numpy-arrays/possible_answers.npy')
+
+model = load_model('first_model')
+
+with device('/cpu:0'):
+    predictions = model.predict(x=[test_imgs, test_qs])
+
+print(np.shape(predictions))
+print(np.shape(test_answers))
+
+predictions = np.argmax(predictions, axis=1)
+test_answers = np.argmax(test_answers, axis=1)
+
+metrics.get_precision(predictions, test_answers) ## using weighted average
+metrics.get_recall(predictions, test_answers) ## using weighted average
+metrics.get_f1(predictions, test_answers) ## using weighted average
+metrics.get_accuracy(predictions, test_answers) ## using weighted average
 
 
 ## could do k-fold cross validation
