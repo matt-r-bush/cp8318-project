@@ -25,11 +25,12 @@ def main():
     for i in range(len(train_annotations['annotations'])):
         ans = train_annotations['annotations'][i]['multiple_choice_answer']
         question_id = train_annotations['annotations'][i]['question_id']
+        image_id = train_annotations['annotations'][i]['image_id']
         image_path = imdir%(image_folder, image_set, train_annotations['annotations'][i]['image_id'])
         question = train_qs['questions'][i]['question']
         mc_ans = train_qs['questions'][i]['multiple_choices']
 
-        train.append({'ques_id': question_id, 'img_path': image_path, 'question': question, 'MC_ans': mc_ans, 'ans': ans})
+        train.append({'ques_id': question_id, 'image_id': image_id, 'img_path': image_path, 'question': question, 'MC_ans': mc_ans, 'ans': ans})
 
     
     ## get validation data and add to training data
@@ -38,12 +39,12 @@ def main():
     for i in range(len(val_annotations['annotations'])):
         ans = val_annotations['annotations'][i]['multiple_choice_answer']
         question_id = val_annotations['annotations'][i]['question_id']
+        image_id = val_annotations['annotations'][i]['image_id']
         image_path = imdir%(image_folder, image_set, val_annotations['annotations'][i]['image_id'])
-
         question = val_qs['questions'][i]['question']
         mc_ans = val_qs['questions'][i]['multiple_choices']
 
-        test.append({'ques_id': question_id, 'img_path': image_path, 'question': question, 'MC_ans': mc_ans, 'ans': ans})
+        test.append({'ques_id': question_id, 'image_id': image_id, 'img_path': image_path, 'question': question, 'MC_ans': mc_ans, 'ans': ans})
     
     # ## get test data
     # image_folder = 'testing_images'

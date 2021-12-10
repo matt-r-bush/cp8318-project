@@ -12,8 +12,6 @@ import numpy as np
 import json
 
 
-
-
 def tokenize(data):
   
     # preprocess all the question
@@ -191,7 +189,7 @@ def get_unique_img(imgs): ## change this up
 
     for i, img in enumerate(imgs):
         img_pos[i] = imgtoi.get(img['img_path'])
-
+    print('unqie img ', unique_img[0])
     return unique_img, img_pos
 
 
@@ -216,36 +214,51 @@ def encode_mc_answer(imgs, atoi): ## change this up
 
 
 
-def main():
-    raw_train = json.load(open('abstract_train.json', 'r'))
-    raw_test = json.load(open('abstract_test.json', 'r'))
+# def main():
+raw_train = json.load(open('abstract_train.json', 'r'))
+raw_test = json.load(open('abstract_test.json', 'r'))
 
-    seed(5318008)
-    shuffle(raw_train)
+seed(5318008)
+shuffle(raw_train)
 
-    ## tokenize data
-    raw_train = tokenize(raw_train)
-    raw_test = tokenize(raw_test)
+## tokenize data
+raw_train = tokenize(raw_train)
+raw_test = tokenize(raw_test)
 
-    q_vocab, q_inverse_vocab, max_len = create_question_vocab(raw_train)
+q_vocab, q_inverse_vocab, max_len = create_question_vocab(raw_train)
 
-    a_vocab, a_inverse_vocab = create_answer_vocab(raw_train)
+a_vocab, a_inverse_vocab = create_answer_vocab(raw_train)
 
-    ## get numpy arrays of trainable data
-    int_qs_train, train_qid = prepare_questions(raw_train, q_vocab, max_len)
-    int_qs_test, test_qid = prepare_questions(raw_test, q_vocab, max_len)
-    
-    ## change this up
-    unique_img_train, img_pos_train = get_unique_img(raw_train)
-    unique_img_test, img_pos_test = get_unique_img(raw_test)
+## get numpy arrays of trainable data
+int_qs_train, train_qid = prepare_questions(raw_train, q_vocab, max_len)
+int_qs_test, test_qid = prepare_questions(raw_test, q_vocab, max_len)
+# print('int qs train ', int_qs_train[0])
+# print('int qs test', int_qs_test[0])
 
-    ## get encoded answers
-    train_answers = encode_answer(raw_train, a_vocab)
-    MC_ans_test = encode_mc_answer(raw_test, a_vocab)
+## change this up
+unique_img_train, img_pos_train = get_unique_img(raw_train)
+unique_img_test, img_pos_test = get_unique_img(raw_test)
+# image_shape = unique_img_train[0].shape
+print('unique img train ', unique_img_train[0])
+print(' image pos ', img_pos_train[0])
+# print('unique img test', unique_img_test[0])
+
+## get encoded answers
+train_answers = encode_answer(raw_train, a_vocab)
+MC_ans_test = encode_mc_answer(raw_test, a_vocab)
+print('train answers', train_answers[0])
+print('mc ans test', MC_ans_test[0])
 
 
+# if __name__ == '__main__':
+#     main()
+print('x train ', int_qs_train[0])
+print('x test ', int_qs_test[0])
+# print('y train ', int_qs_train[0])
+# print('y test ', y_test[0])
+print('train qs ', q_vocab[0])
+print('test qs ', a_vocab[0])
 
-
-
-if __name__ == '__main__':
-    main()
+def get_data():
+    return (int_qs_train, int_qs_test, int_qs_train, int_qs_test, q_vocab, a_vocab, train_answers, len(q_vocab), image_shape)
+    # return (x_train, x_test, y_train, y_test, train_questions, test_questions, all_ans, num_words, image_shape)
