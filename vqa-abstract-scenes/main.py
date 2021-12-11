@@ -30,7 +30,7 @@ import metrics
 
 IMG_SHAPE = (200, 350, 3)
 BATCH_SIZE = 128
-MODEL_NAME = 'third_model'
+MODEL_NAME = 'top_10'
 
 # construct the training image generator for data augmentation
 class My_Custom_Generator(keras.utils.Sequence) :
@@ -67,32 +67,35 @@ def init_model(img_shape, vocab_size, num_answers):
     img_info = Conv2D(8, 3, padding='same')(img_input) ## may need to pad conv2D
     img_info = MaxPooling2D(padding='same')(img_info)
 
-    img_info = Conv2D(16, 3, padding='same')(img_info)
+    img_info = Conv2D(16, 3, padding='same', activation ='swish', kernel_initializer='he_uniform')(img_info)
     img_info = MaxPooling2D(padding='same')(img_info)
 
-    img_info = Conv2D(32, 3, padding='same')(img_info)
+    img_info = Conv2D(32, 3, padding='same', activation ='swish', kernel_initializer='he_uniform')(img_info)
     img_info = MaxPooling2D(padding='same')(img_info)
 
-    img_info = Conv2D(64, 3, padding='same')(img_info)
+    img_info = Conv2D(64, 3, padding='same', activation ='swish', kernel_initializer='he_uniform')(img_info)
+    img_info = MaxPooling2D(padding='same')(img_info)
+
+    img_info = Conv2D(128, 3, padding='same', activation ='swish', kernel_initializer='he_uniform')(img_info)
     img_info = MaxPooling2D(padding='same')(img_info)
     
     ## could add a dropout layer here
 
     img_info = Flatten()(img_info)
     
-    img_info = Dense(32, activation ='swish')(img_info)
+    img_info = Dense(128, activation ='swish', kernel_initializer='he_uniform')(img_info)
 
     ## question NN ## right now takes word vector inputs but could add an embedding layer to see what happens
 
     q_input = Input(shape=(vocab_size,), name = 'question_input')
-    q_info = Dense(32, activation='swish')(q_input)
-    q_info = Dense(32, activation='swish')(q_info)
+    q_info = Dense(128, activation='swish')(q_input)
+    q_info = Dense(128, activation='swish')(q_info)
 
 
     ## merge img_info and q_info
 
     output = Multiply()([img_info, q_info])
-    output = Dense(32, activation='swish')(output)
+    output = Dense(128, activation='swish')(output)
     output = Dense(num_answers, activation='softmax')(output)
 
     model = Model(inputs=[img_input, q_input], outputs=output)
@@ -119,7 +122,7 @@ model = init_model(IMG_SHAPE, num_words, num_answers)
 # with device('/cpu:0'):
 history = model.fit(x = my_training_batch_generator,
     steps_per_epoch = np.ceil(train_answers.shape[0] / BATCH_SIZE),
-    epochs=1,
+    epochs=10,
     verbose=1,
     validation_data = my_validation_batch_generator,
     validation_steps = np.ceil(test_answers.shape[0] / BATCH_SIZE)
@@ -130,7 +133,7 @@ with open('{}_hist'.format(MODEL_NAME), 'wb') as file_pi:
 
 model.save(MODEL_NAME)
 
-# model = load_model('second_model_generator')
+# model = load_model(MODEL_NAME)
 
 # with device('/cpu:0'):
 # predictions = model.predict(x=my_validation_batch_generator,

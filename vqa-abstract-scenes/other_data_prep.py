@@ -10,8 +10,8 @@ from pathlib import Path
 import math
 
 # max answers is 2521
-TRAIN_AMOUNT = 30000
-TEST_AMOUNT = 500
+TRAIN_AMOUNT = 60000
+TEST_AMOUNT = 1000
 
 
 def get_qaiapa(data, type, check_top_ans, removeYesNo):
@@ -159,7 +159,7 @@ raw_train = json.load(open('abstract_train.json', 'r'))
 raw_test = json.load(open('abstract_test.json', 'r'))
 
 # train
-train_questions, train_ans, train_ids, possible_train_ans, train_img_paths, image_paths_arr = get_qaiapa(raw_train, 'train', 2, False)
+train_questions, train_ans, train_ids, possible_train_ans, train_img_paths, image_paths_arr = get_qaiapa(raw_train, 'train', 10, removeYesNo=True)
 # print('num ', len(train_questions))
 # test
 # test_questions, test_ans, test_ids, possible_test_ans, test_img_paths = get_qaiap(raw_test, 'test')
