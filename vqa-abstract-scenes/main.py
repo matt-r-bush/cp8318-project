@@ -69,38 +69,38 @@ def init_model(img_shape, vocab_size, num_answers, layers):
       img_info = MaxPooling2D(padding='same')(img_info)
 
     if layers >= 2:
-      img_info = Conv2D(16, 3, padding='same', activation ='swish', kernel_initializer='he_uniform')(img_info)
+      img_info = Conv2D(16, 3, padding='same')(img_info)
       img_info = MaxPooling2D(padding='same')(img_info)
 
     if layers >= 3:
-      img_info = Conv2D(32, 3, padding='same', activation ='swish', kernel_initializer='he_uniform')(img_info)
+      img_info = Conv2D(32, 3, padding='same')(img_info)
       img_info = MaxPooling2D(padding='same')(img_info)
 
     if layers >= 4:
-      img_info = Conv2D(64, 3, padding='same', activation ='swish', kernel_initializer='he_uniform')(img_info)
+      img_info = Conv2D(64, 3, padding='same')(img_info)
       img_info = MaxPooling2D(padding='same')(img_info)
 
     if layers >= 5:
-      img_info = Conv2D(128, 3, padding='same', activation ='swish', kernel_initializer='he_uniform')(img_info)
+      img_info = Conv2D(128, 3, padding='same')(img_info)
       img_info = MaxPooling2D(padding='same')(img_info)
     
     ## could add a dropout layer here
 
     img_info = Flatten()(img_info)
     
-    img_info = Dense(128, activation ='swish', kernel_initializer='he_uniform')(img_info)
+    img_info = Dense(64, activation ='swish', kernel_initializer='he_uniform')(img_info)
 
     ## question NN ## right now takes word vector inputs but could add an embedding layer to see what happens
 
     q_input = Input(shape=(vocab_size,), name = 'question_input')
-    q_info = Dense(128, activation='swish')(q_input)
-    q_info = Dense(128, activation='swish')(q_info)
+    q_info = Dense(64, activation='swish')(q_input)
+    q_info = Dense(64, activation='swish')(q_info)
 
 
     ## merge img_info and q_info
 
     output = Multiply()([img_info, q_info])
-    output = Dense(128, activation='swish')(output)
+    output = Dense(64, activation='swish')(output)
     output = Dense(num_answers, activation='softmax')(output)
 
     model = Model(inputs=[img_input, q_input], outputs=output)
@@ -136,10 +136,10 @@ def run_model(epochs, model_name, layers, check_top_ans, removeYesNo):
         validation_steps = np.ceil(test_answers.shape[0] / BATCH_SIZE)
     )
 
-    with open('{}_hist'.format(model_name), 'wb') as file_pi:
+    with open('./history/{}_hist'.format(model_name), 'wb') as file_pi:
             pickle.dump(history.history, file_pi)
 
-    model.save(model_name)
+    model.save('./models/'+model_name)
 
 # 3 layers, yes/no (top 2)
 run_model(epochs=1, model_name='3L_yes_no', layers=3, check_top_ans=2, removeYesNo=False)
@@ -151,22 +151,22 @@ run_model(epochs=1, model_name='4L_yes_no', layers=4, check_top_ans=2, removeYes
 run_model(epochs=1, model_name='5L_yes_no', layers=5, check_top_ans=2, removeYesNo=False)
 
 # 3 layers, top 10 answers (not including yes/no)
-run_model(epochs=1, model_name='3L_top_10', layers=3, check_top_ans=2, removeYesNo=True)
+run_model(epochs=1, model_name='3L_top_10', layers=3, check_top_ans=10, removeYesNo=True)
 
 # 4 layers, top 10 answers (not including yes/no)
-run_model(epochs=1, model_name='4L_top_10', layers=4, check_top_ans=2, removeYesNo=True)
+run_model(epochs=1, model_name='4L_top_10', layers=4, check_top_ans=10, removeYesNo=True)
 
 # 5 layers, top 10 answers (not including yes/no)
-run_model(epochs=1, model_name='5L_top_10', layers=5, check_top_ans=2, removeYesNo=True)
+run_model(epochs=1, model_name='5L_top_10', layers=5, check_top_ans=10, removeYesNo=True)
 
 # 3 layers, top 100 answers (not including yes/no)
-run_model(epochs=1, model_name='3L_top_100', layers=3, check_top_ans=2, removeYesNo=True)
+run_model(epochs=1, model_name='3L_top_100', layers=3, check_top_ans=100, removeYesNo=True)
 
 # 4 layers, top 100 answers (not including yes/no)
-run_model(epochs=1, model_name='4L_top_100', layers=4, check_top_ans=2, removeYesNo=True)
+run_model(epochs=1, model_name='4L_top_100', layers=4, check_top_ans=100, removeYesNo=True)
 
 # 5 layers, top 100 answers (not including yes/no)
-run_model(epochs=1, model_name='5L_top_100', layers=5, check_top_ans=2, removeYesNo=True)
+run_model(epochs=1, model_name='5L_top_100', layers=5, check_top_ans=100, removeYesNo=True)
 
 # model = load_model(MODEL_NAME)
 
