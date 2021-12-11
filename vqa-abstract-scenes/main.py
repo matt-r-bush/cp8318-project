@@ -8,13 +8,16 @@ from tensorflow.python.keras.backend import argmax
 ## allows me to choose devices for training
 from tensorflow import device
 
+PREP = 'seq'
 ## imports from our files
-from other_data_prep import get_data
+from bow_data_prep import bow_get_data
+from seq_data_prep import seq_get_data
 
 ## for dealing with images
 from skimage.io import imread
 from skimage.transform import resize
 # from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import os.path
 
 
 # from sklearn.metrics import get_precision, get_recall, get_f1, get_accuracy
@@ -110,63 +113,117 @@ def init_model(img_shape, vocab_size, num_answers, layers):
 
     return model
 
-def run_model(epochs, model_name, layers, check_top_ans, removeYesNo):
-  train_imgs, test_imgs, train_answers, test_answers, train_qs, test_qs, possible_answers, num_words = get_data(check_top_ans, removeYesNo)
+def run_model(epochs, model_name, layers, check_top_ans, removeYesNo, get_data, type):
+  if os.path.isfile('./model_data/{}_data'.format(model_name)):
+    with open('./model_data/{}_data'.format(model_name), 'rb') as data_file:
+      data = pickle.load(data_file)
+    
+  else:
+    data = get_data(check_top_ans, removeYesNo)
+    with open('./model_data/{}_data'.format(model_name), 'wb') as data_file:
+      pickle.dump(data, data_file)
+  data_file.close()
+  train_imgs, test_imgs, train_answers, test_answers, train_qs, test_qs, possible_answers, num_words = data
+  
+
+  print('train imgs', train_qs)
 
   num_answers = len(possible_answers)
 
   my_training_batch_generator = My_Custom_Generator(train_imgs, train_qs, train_answers, batch_size=BATCH_SIZE)
   my_validation_batch_generator = My_Custom_Generator(test_imgs, test_qs, test_answers, batch_size=BATCH_SIZE)
 
-  # initialize models for parameters
-
-  model = init_model(IMG_SHAPE, num_words, num_answers, layers)
+  # if model exists, retrieve it
+  if os.path.isdir('./models/'+model_name):
+    print('LOADING MODEL.......')
+    model = load_model('./models/'+model_name)
+  else:
+    # initialize models for parameters
+    if type == 'bow':
+      model = init_model(IMG_SHAPE, num_words, num_answers, layers)
+    else:
+      model = init_model(IMG_SHAPE, train_qs.shape[1], num_answers, layers)
 
   # model = load_model(MODEL_NAME)
+  # save model every epoch
+  checkpoint = keras.callbacks.ModelCheckpoint('./models/'+model_name, period=1) 
 
+  print('fitting...')
+  history = model.fit(x = my_training_batch_generator,
+      steps_per_epoch = np.ceil(train_answers.shape[0] / BATCH_SIZE),
+      epochs=epochs,
+      verbose=1,
+      validation_data = my_validation_batch_generator,
+      validation_steps = np.ceil(test_answers.shape[0] / BATCH_SIZE),
+      callbacks=[checkpoint]
+  )
 
-  for i in range(epochs):
-    ## train model and record history
-    # with device('/cpu:0'):
-    history = model.fit(x = my_training_batch_generator,
-        steps_per_epoch = np.ceil(train_answers.shape[0] / BATCH_SIZE),
-        epochs=1,
-        verbose=1,
-        validation_data = my_validation_batch_generator,
-        validation_steps = np.ceil(test_answers.shape[0] / BATCH_SIZE)
-    )
+  with open('./history/{}_hist'.format(model_name), 'wb') as file_pi:
+    pickle.dump(history.history, file_pi)
+  file_pi.close()
 
-    with open('./history/{}_hist'.format(model_name), 'wb') as file_pi:
-            pickle.dump(history.history, file_pi)
+  model.save('./models/'+model_name)
 
-    model.save('./models/'+model_name)
-
+#seq
 # 3 layers, yes/no (top 2)
-run_model(epochs=1, model_name='3L_yes_no', layers=3, check_top_ans=2, removeYesNo=False)
+run_model(epochs=5, model_name='3L_yes_no_seq', layers=3, check_top_ans=2, removeYesNo=False, get_data=seq_get_data, type='seq')
 
 # 4 layers, yes/no (top 2)
-run_model(epochs=1, model_name='4L_yes_no', layers=4, check_top_ans=2, removeYesNo=False)
+run_model(epochs=5, model_name='4L_yes_no_seq', layers=4, check_top_ans=2, removeYesNo=False, get_data=seq_get_data, type='seq')
 
 # 5 layers, yes/no (top 2)
-run_model(epochs=1, model_name='5L_yes_no', layers=5, check_top_ans=2, removeYesNo=False)
+run_model(epochs=5, model_name='5L_yes_no_seq', layers=5, check_top_ans=2, removeYesNo=False, get_data=seq_get_data, type='seq')
 
 # 3 layers, top 10 answers (not including yes/no)
-run_model(epochs=1, model_name='3L_top_10', layers=3, check_top_ans=10, removeYesNo=True)
+run_model(epochs=5, model_name='3L_top_10_seq', layers=3, check_top_ans=10, removeYesNo=True, get_data=seq_get_data, type='seq')
 
 # 4 layers, top 10 answers (not including yes/no)
-run_model(epochs=1, model_name='4L_top_10', layers=4, check_top_ans=10, removeYesNo=True)
+run_model(epochs=5, model_name='4L_top_10_seq', layers=4, check_top_ans=10, removeYesNo=True, get_data=seq_get_data, type='seq')
 
 # 5 layers, top 10 answers (not including yes/no)
-run_model(epochs=1, model_name='5L_top_10', layers=5, check_top_ans=10, removeYesNo=True)
+run_model(epochs=5, model_name='5L_top_10_seq', layers=5, check_top_ans=10, removeYesNo=True, get_data=seq_get_data, type='seq')
 
 # 3 layers, top 100 answers (not including yes/no)
-run_model(epochs=1, model_name='3L_top_100', layers=3, check_top_ans=100, removeYesNo=True)
+run_model(epochs=5, model_name='3L_top_100_seq', layers=3, check_top_ans=100, removeYesNo=True, get_data=seq_get_data, type='seq')
 
 # 4 layers, top 100 answers (not including yes/no)
-run_model(epochs=1, model_name='4L_top_100', layers=4, check_top_ans=100, removeYesNo=True)
+run_model(epochs=5, model_name='4L_top_100_seq', layers=4, check_top_ans=100, removeYesNo=True, get_data=seq_get_data, type='seq')
 
 # 5 layers, top 100 answers (not including yes/no)
-run_model(epochs=1, model_name='5L_top_100', layers=5, check_top_ans=100, removeYesNo=True)
+run_model(epochs=5, model_name='5L_top_100_seq', layers=5, check_top_ans=100, removeYesNo=True, get_data=seq_get_data, type='seq')
+
+
+# bow
+# 3 layers, yes/no (top 2)
+run_model(epochs=5, model_name='3L_yes_no_bow', layers=3, check_top_ans=2, removeYesNo=False, get_data=bow_get_data, type='bow')
+
+# 4 layers, yes/no (top 2)
+run_model(epochs=5, model_name='4L_yes_no_bow', layers=4, check_top_ans=2, removeYesNo=False, get_data=bow_get_data, type='bow')
+
+# 5 layers, yes/no (top 2)
+run_model(epochs=5, model_name='5L_yes_no_bow', layers=5, check_top_ans=2, removeYesNo=False, get_data=bow_get_data, type='bow')
+
+# 3 layers, top 10 answers (not including yes/no)
+run_model(epochs=5, model_name='3L_top_10_bow', layers=3, check_top_ans=10, removeYesNo=True, get_data=bow_get_data, type='bow')
+
+# 4 layers, top 10 answers (not including yes/no)
+run_model(epochs=5, model_name='4L_top_10_bow', layers=4, check_top_ans=10, removeYesNo=True, get_data=bow_get_data, type='bow')
+
+# 5 layers, top 10 answers (not including yes/no)
+run_model(epochs=5, model_name='5L_top_10_bow', layers=5, check_top_ans=10, removeYesNo=True, get_data=bow_get_data, type='bow')
+
+# 3 layers, top 100 answers (not including yes/no)
+run_model(epochs=5, model_name='3L_top_100_bow', layers=3, check_top_ans=100, removeYesNo=True, get_data=bow_get_data, type='bow')
+
+# 4 layers, top 100 answers (not including yes/no)
+run_model(epochs=5, model_name='4L_top_100_bow', layers=4, check_top_ans=100, removeYesNo=True, get_data=bow_get_data, type='bow')
+
+# 5 layers, top 100 answers (not including yes/no)
+run_model(epochs=5, model_name='5L_top_100_bow', layers=5, check_top_ans=100, removeYesNo=True, get_data=bow_get_data, type='bow')
+
+
+
+
 
 # model = load_model(MODEL_NAME)
 
