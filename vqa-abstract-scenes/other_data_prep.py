@@ -10,7 +10,7 @@ from pathlib import Path
 import math
 
 # max answers is 2521
-TRAIN_AMOUNT = 30000
+TRAIN_AMOUNT = 60000
 TEST_AMOUNT = 500
 
 
@@ -155,56 +155,57 @@ def get_questions(questions):
         count += 1
     return questions_bow, num_words
 
-raw_train = json.load(open('abstract_train.json', 'r'))
-raw_test = json.load(open('abstract_test.json', 'r'))
+def set_data(check_top_ans, removeYesNo):
+    raw_train = json.load(open('abstract_train.json', 'r'))
+    raw_test = json.load(open('abstract_test.json', 'r'))
 
-# train
-train_questions, train_ans, train_ids, possible_train_ans, train_img_paths, image_paths_arr = get_qaiapa(raw_train, 'train', 2, False)
-# print('num ', len(train_questions))
-# test
-# test_questions, test_ans, test_ids, possible_test_ans, test_img_paths = get_qaiap(raw_test, 'test')
-# set all answers (possible answers from training set)
-all_ans = possible_train_ans
-num_ans = len(all_ans)
+    # train
+    train_questions, train_ans, train_ids, possible_train_ans, train_img_paths, image_paths_arr = get_qaiapa(raw_train, 'train',  check_top_ans, removeYesNo)
+    # print('num ', len(train_questions))
+    # test
+    # test_questions, test_ans, test_ids, possible_test_ans, test_img_paths = get_qaiap(raw_test, 'test')
+    # set all answers (possible answers from training set)
+    all_ans = possible_train_ans
+    num_ans = len(all_ans)
 
-# process images
-# train
-# train_images, image_shape = getImages(train_img_paths)
-# print('train imgs ', train_images)
-# print('image shape ', image_shape)
-# test, don't need image shape anymore, redundant
-# test_images = getImages(test_img_paths)
+    # process images
+    # train
+    # train_images, image_shape = getImages(train_img_paths)
+    # print('train imgs ', train_images)
+    # print('image shape ', image_shape)
+    # test, don't need image shape anymore, redundant
+    # test_images = getImages(test_img_paths)
 
-# get questions bow
-# train
-train_questions_bow, num_words = get_questions(train_questions)
-# print('num words ', num_words)
-# print('training q bow ', train_questions_bow)
-# test
-# test_questions_bow = get_questions(test_questions)
+    # get questions bow
+    # train
+    train_questions_bow, num_words = get_questions(train_questions)
+    # print('num words ', num_words)
+    # print('training q bow ', train_questions_bow)
+    # test
+    # test_questions_bow = get_questions(test_questions)
 
-# create model inputs
-x = image_paths_arr#np.array([train_images[id] for id in train_ids])
+    # create model inputs
+    x = image_paths_arr#np.array([train_images[id] for id in train_ids])
 
-# create model outputs
-answers_idx = [all_ans.index(a) for a in train_ans]
-y = to_categorical(answers_idx)
+    # create model outputs
+    answers_idx = [all_ans.index(a) for a in train_ans]
+    y = to_categorical(answers_idx)
 
-# set ratio for train
-ratio = 0.8
-# split x into train and test
-ratio = math.floor(len(x)*ratio)
-x_train = x[:ratio]
-x_test = x[ratio:]
-# split x into train and test
-y_train = y[:ratio]
-y_test = y[ratio:]
-# split questions
-train_questions = train_questions_bow[:ratio]
-test_questions = train_questions_bow[ratio:]
+    # set ratio for train
+    ratio = 0.8
+    # split x into train and test
+    ratio = math.floor(len(x)*ratio)
+    x_train = x[:ratio]
+    x_test = x[ratio:]
+    # split x into train and test
+    y_train = y[:ratio]
+    y_test = y[ratio:]
+    # split questions
+    train_questions = train_questions_bow[:ratio]
+    test_questions = train_questions_bow[ratio:]
 
-# print('x train ', x_train.shape)
-# print('train qs ', train_questions.shape)
-# print('image paths arr ', img_paths_arr)
-def get_data():
+    return x_train, x_test, y_train, y_test, train_questions, test_questions, all_ans, num_words
+
+def get_data(check_top_ans, removeYesNo):
+    x_train, x_test, y_train, y_test, train_questions, test_questions, all_ans, num_words = set_data(check_top_ans, removeYesNo)
     return (x_train, x_test, y_train, y_test, train_questions, test_questions, all_ans, num_words)
