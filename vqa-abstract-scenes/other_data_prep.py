@@ -10,8 +10,8 @@ from pathlib import Path
 import math
 
 # max answers is 2521
-TRAIN_AMOUNT = 60000
-TEST_AMOUNT = 500
+TRAIN_AMOUNT = 1000
+TEST_AMOUNT = 60000
 
 
 def get_qaiapa(data, type, check_top_ans, removeYesNo):
