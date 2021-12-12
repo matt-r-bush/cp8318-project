@@ -1,19 +1,24 @@
 import pickle
+import os
 from matplotlib import pyplot as plt
 
-FILENAME = '5L_yes_no_seq_hist'
-with open('./history/'+FILENAME, 'rb') as handle:
-    history = pickle.load(handle)
+DIR = "./history/"
 
-print(history)
-#  "Accuracy"
-plt.plot(history['accuracy'])
-plt.plot(history['val_accuracy'])
-plt.title('model accuracy')
-plt.ylabel('accuracy')
-plt.xlabel('epoch')
-plt.legend(['train', 'validation'], loc='upper left')
-plt.savefig('./plots/'+FILENAME+'.pdf')  
+for filename in os.listdir(DIR):
+    FILENAME = filename
+    with open(DIR+FILENAME, 'rb') as handle:
+        history = pickle.load(handle)
+
+    print(history)
+    #  "Accuracy"
+    plt.plot(history['accuracy'])
+    plt.plot(history['val_accuracy'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'], loc='upper left')
+    plt.savefig('./plots/'+FILENAME+'.pdf')
+    plt.clf()
 
 # # plot model
 # import numpy as np
