@@ -1,7 +1,7 @@
 import pickle
 from matplotlib import pyplot as plt
 
-FILENAME = 'cum_hist'
+FILENAME = '5L_yes_no_seq_hist'
 with open('./history/'+FILENAME, 'rb') as handle:
     history = pickle.load(handle)
 
